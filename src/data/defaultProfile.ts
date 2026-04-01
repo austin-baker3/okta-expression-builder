@@ -1,0 +1,73 @@
+import type { ProfileData } from "../types/expression";
+
+export interface ProfileAttribute {
+  key: string;
+  label: string;
+  type: "string" | "string[]";
+}
+
+export const profileSchema: ProfileAttribute[] = [
+  { key: "login", label: "Login", type: "string" },
+  { key: "email", label: "Email", type: "string" },
+  { key: "firstName", label: "First Name", type: "string" },
+  { key: "lastName", label: "Last Name", type: "string" },
+  { key: "displayName", label: "Display Name", type: "string" },
+  { key: "middleName", label: "Middle Name", type: "string" },
+  { key: "honorificPrefix", label: "Honorific Prefix", type: "string" },
+  { key: "honorificSuffix", label: "Honorific Suffix", type: "string" },
+  { key: "nickName", label: "Nickname", type: "string" },
+  { key: "secondEmail", label: "Secondary Email", type: "string" },
+  { key: "mobilePhone", label: "Mobile Phone", type: "string" },
+  { key: "primaryPhone", label: "Primary Phone", type: "string" },
+  { key: "streetAddress", label: "Street Address", type: "string" },
+  { key: "city", label: "City", type: "string" },
+  { key: "state", label: "State", type: "string" },
+  { key: "zipCode", label: "Zip Code", type: "string" },
+  { key: "countryCode", label: "Country Code", type: "string" },
+  { key: "postalAddress", label: "Postal Address", type: "string" },
+  { key: "preferredLanguage", label: "Preferred Language", type: "string" },
+  { key: "locale", label: "Locale", type: "string" },
+  { key: "timezone", label: "Timezone", type: "string" },
+  { key: "userType", label: "User Type", type: "string" },
+  { key: "employeeNumber", label: "Employee Number", type: "string" },
+  { key: "costCenter", label: "Cost Center", type: "string" },
+  { key: "organization", label: "Organization", type: "string" },
+  { key: "division", label: "Division", type: "string" },
+  { key: "department", label: "Department", type: "string" },
+  { key: "title", label: "Title", type: "string" },
+  { key: "managerId", label: "Manager ID", type: "string" },
+  { key: "manager", label: "Manager", type: "string" },
+];
+
+export const defaultProfileData: ProfileData = {
+  login: "jane.doe@acme.com",
+  email: "jane.doe@acme.com",
+  firstName: "Jane",
+  lastName: "Doe",
+  displayName: "Jane Doe",
+  middleName: "Marie",
+  honorificPrefix: "Ms.",
+  honorificSuffix: null,
+  nickName: "JD",
+  secondEmail: "jane.personal@gmail.com",
+  mobilePhone: "+1-555-0101",
+  primaryPhone: "+1-555-0100",
+  streetAddress: "123 Main St",
+  city: "San Francisco",
+  state: "CA",
+  zipCode: "94105",
+  countryCode: "US",
+  postalAddress: "123 Main St, San Francisco, CA 94105",
+  preferredLanguage: "en",
+  locale: "en_US",
+  timezone: "America/Los_Angeles",
+  userType: "Employee",
+  employeeNumber: "EMP-12345",
+  costCenter: "CC-100",
+  organization: "Acme Corp",
+  division: "Product",
+  department: "Engineering",
+  title: "Software Engineer",
+  managerId: "mgr001",
+  manager: "bob.smith@acme.com",
+};
