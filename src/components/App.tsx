@@ -1,9 +1,23 @@
+import { ExpressionContext, useExpressionState } from "../hooks/useExpression";
+import Header from "./Header";
+import OutputBar from "./OutputBar";
+
 export default function App() {
+  const state = useExpressionState();
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <h1 className="text-2xl font-bold p-8 text-violet-400">
-        Okta Expression Builder
-      </h1>
-    </div>
+    <ExpressionContext.Provider value={state}>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+        <Header />
+        <main className="flex-1 p-4 pb-16">
+          <div className="text-slate-500 text-sm text-center mt-32">
+            {state.mode === "easy"
+              ? "Tree builder coming soon..."
+              : "Code editor coming soon..."}
+          </div>
+        </main>
+        <OutputBar />
+      </div>
+    </ExpressionContext.Provider>
   );
 }
