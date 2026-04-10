@@ -3,15 +3,17 @@ import { useExpression } from "../hooks/useExpression";
 import { parse } from "../engine/parser";
 import { functionRegistry } from "../data/functionRegistry";
 import { profileSchema } from "../data/defaultProfile";
+import type { ParseError } from "../types/expression";
 
 export default function CodeEditor() {
-  const { setTree, expressionString } = useExpression();
+  const { setTree, expressionString, parseError, setParseError } = useExpression();
   const [code, setCode] = useState(expressionString);
-  const [parseError, setParseError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setCode(expressionString);
@@ -38,7 +40,13 @@ export default function CodeEditor() {
         setTree(parsed);
         setParseError(null);
       } catch (e) {
-        setParseError((e as Error).message);
+        const err = e as Error & { position?: number; length?: number; hint?: string };
+        setParseError({
+          message: err.message,
+          position: err.position ?? 0,
+          length: err.length ?? 1,
+          hint: err.hint,
+        } satisfies ParseError);
       }
 
       const lastToken = value.split(/[\s(,]+/).pop() ?? "";
@@ -52,7 +60,7 @@ export default function CodeEditor() {
         setShowSuggestions(false);
       }
     },
-    [setTree, allCompletions]
+    [setTree, setParseError, allCompletions]
   );
 
   const applySuggestion = (suggestion: string) => {
@@ -85,6 +93,13 @@ export default function CodeEditor() {
     }
   };
 
+  const handleScroll = useCallback(() => {
+    if (textareaRef.current && highlightRef.current) {
+      highlightRef.current.scrollLeft = textareaRef.current.scrollLeft;
+      highlightRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  }, []);
+
   const selectedFn = (() => {
     const lastToken = code.split(/[\s(,]+/).pop() ?? "";
     return functionRegistry.find((f) => f.name === lastToken || code.includes(f.name + "("));
@@ -98,20 +113,58 @@ export default function CodeEditor() {
         </h2>
         {parseError && (
           <span className="text-xs font-mono text-error px-2 py-0.5 bg-error-dim border border-error/20">
-            {parseError}
+            {parseError.message}
           </span>
         )}
       </div>
-      <div className="relative flex-1">
+      <div className="relative flex-1 bg-bg-surface border border-border">
+        {/* Highlight layer */}
+        <div
+          ref={highlightRef}
+          aria-hidden
+          className="absolute inset-0 px-4 py-3 font-mono text-sm whitespace-pre-wrap break-words overflow-hidden pointer-events-none"
+        >
+          {parseError && code && (
+            <>
+              <span className="invisible">
+                {code.substring(0, parseError.position)}
+              </span>
+              <span
+                data-testid="error-highlight"
+                className="bg-error/20 border-b-2 border-error rounded-sm relative"
+                style={{ pointerEvents: "auto" }}
+                onMouseEnter={() => setTooltipVisible(true)}
+                onMouseLeave={() => setTooltipVisible(false)}
+              >
+                {code.substring(parseError.position, parseError.position + parseError.length) || " "}
+                {tooltipVisible && (
+                  <span
+                    data-testid="error-tooltip"
+                    className="absolute bottom-full left-0 mb-1 px-2 py-1 bg-bg-elevated border border-error/30 text-error text-xs font-mono whitespace-nowrap z-50 shadow-lg"
+                  >
+                    {parseError.message}
+                    {parseError.hint && (
+                      <span className="block text-text-muted mt-0.5">{parseError.hint}</span>
+                    )}
+                  </span>
+                )}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Textarea — transparent, on top */}
         <textarea
           ref={textareaRef}
           value={code}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
+          onScroll={handleScroll}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           placeholder='Start typing... e.g. String.toUpperCase(user.email)'
           spellCheck={false}
-          className="w-full h-full min-h-[200px] bg-bg-surface border border-border px-4 py-3 font-mono text-sm text-code-green placeholder-text-muted resize-none focus:outline-none focus:border-accent transition-colors"
+          className="w-full h-full min-h-[200px] bg-transparent px-4 py-3 font-mono text-sm text-code-green placeholder-text-muted resize-none focus:outline-none focus:border-accent transition-colors relative z-10"
+          style={{ caretColor: "var(--color-code-green)" }}
         />
         {showSuggestions && (
           <div className="absolute left-4 top-12 z-30 bg-bg-elevated border border-border shadow-xl max-h-48 overflow-y-auto">

@@ -28,6 +28,14 @@ export function validate(
     case "group":
       return validate(node.expression, [...path, 0]);
 
+    case "array": {
+      const errors: ValidationError[] = [];
+      for (let i = 0; i < node.elements.length; i++) {
+        errors.push(...validate(node.elements[i], [...path, i]));
+      }
+      return errors;
+    }
+
     case "function":
       return validateFunction(node.name, node.arguments, path);
 

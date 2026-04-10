@@ -35,6 +35,9 @@ export function serialize(node: ExpressionNode): string {
       }
       return node.operands.map(serialize).join(` ${node.operator} `);
 
+    case "array":
+      return `{${node.elements.map(serialize).join(", ")}}`;
+
     case "group":
       return `(${serialize(node.expression)})`;
   }

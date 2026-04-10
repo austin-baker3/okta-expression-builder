@@ -93,8 +93,14 @@ describe("parse", () => {
       type: "operator",
       operator: "+",
       operands: [
-        { type: "attribute", path: "user.firstName" },
-        { type: "literal", value: " " },
+        {
+          type: "operator",
+          operator: "+",
+          operands: [
+            { type: "attribute", path: "user.firstName" },
+            { type: "literal", value: " " },
+          ],
+        },
         { type: "attribute", path: "user.lastName" },
       ],
     });

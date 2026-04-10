@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useExpression } from "../hooks/useExpression";
 
 export default function OutputBar() {
-  const { expressionString, evalResult, validationErrors } = useExpression();
+  const { expressionString, evalResult, validationErrors, parseError } = useExpression();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -12,8 +12,7 @@ export default function OutputBar() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const hasErrors = validationErrors.length > 0;
-  const isEmpty = !expressionString;
+  const isEmpty = !expressionString && !parseError;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg-deep px-5 py-3 z-50">
@@ -25,13 +24,15 @@ export default function OutputBar() {
             </span>
           ) : (
             <>
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-text-muted text-[10px] font-mono uppercase tracking-widest shrink-0">out</span>
-                <code className="text-code-green text-sm font-mono truncate">
-                  {expressionString}
-                </code>
-              </div>
-              {evalResult && (
+              {expressionString && (
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-text-muted text-[10px] font-mono uppercase tracking-widest shrink-0">out</span>
+                  <code className="text-code-green text-sm font-mono truncate">
+                    {expressionString}
+                  </code>
+                </div>
+              )}
+              {evalResult && !parseError && (
                 <>
                   <span className="text-border shrink-0">/</span>
                   {evalResult.ok ? (
@@ -45,18 +46,30 @@ export default function OutputBar() {
                   )}
                 </>
               )}
-              {hasErrors ? (
+              {parseError ? (
                 <span
                   className="text-error text-xs font-mono shrink-0 px-2 py-0.5 bg-error-dim border border-error/20"
-                  title={validationErrors[0].message}
+                  title={parseError.hint ?? parseError.message}
                 >
-                  {validationErrors[0].message}
+                  {parseError.message}
                 </span>
-              ) : !isEmpty ? (
+              ) : validationErrors.length > 0 ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {validationErrors.map((err, i) => (
+                    <span
+                      key={i}
+                      className="text-error text-xs font-mono shrink-0 px-2 py-0.5 bg-error-dim border border-error/20"
+                      title={err.message}
+                    >
+                      {err.message}
+                    </span>
+                  ))}
+                </div>
+              ) : (
                 <span className="text-code-green text-xs font-mono shrink-0 px-2 py-0.5 bg-code-green/10 border border-code-green/20">
                   valid
                 </span>
-              ) : null}
+              )}
             </>
           )}
         </div>

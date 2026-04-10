@@ -25,6 +25,15 @@ export function evaluate(node: ExpressionNode, profile: ProfileData): EvalResult
     case "group":
       return evaluate(node.expression, profile);
 
+    case "array": {
+      const results = node.elements.map((el) => evaluate(el, profile));
+      for (const r of results) {
+        if (!r.ok) return r;
+      }
+      const values = results.map((r) => (r as { ok: true; value: unknown }).value);
+      return { ok: true, value: values.map(String) };
+    }
+
     case "function":
       return evaluateFunction(node.name, node.arguments, profile);
 
@@ -177,6 +186,16 @@ function evaluateOperator(
         return { ok: true, value: (values as number[]).reduce((a, b) => a + b, 0) };
       }
       return { ok: true, value: values.map(String).join("") };
+    }
+    case "-":
+      return { ok: true, value: (values[0] as number) - (values[1] as number) };
+    case "*":
+      return { ok: true, value: (values[0] as number) * (values[1] as number) };
+    case "/": {
+      if ((values[1] as number) === 0) {
+        return { ok: false, error: "Division by zero" };
+      }
+      return { ok: true, value: (values[0] as number) / (values[1] as number) };
     }
     case "==":
       return { ok: true, value: values[0] === values[1] };

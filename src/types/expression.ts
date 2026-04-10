@@ -25,12 +25,18 @@ export interface GroupNode {
   expression: ExpressionNode;
 }
 
+export interface ArrayLiteralNode {
+  type: "array";
+  elements: ExpressionNode[];
+}
+
 export type ExpressionNode =
   | FunctionCallNode
   | AttributeRefNode
   | LiteralNode
   | OperatorNode
-  | GroupNode;
+  | GroupNode
+  | ArrayLiteralNode;
 
 export interface ValidationError {
   message: string;
@@ -55,3 +61,10 @@ export interface ELParameter {
 }
 
 export type ProfileData = Record<string, string | number | boolean | null | string[]>;
+
+export interface ParseError {
+  message: string;
+  position: number;
+  length: number;
+  hint?: string;
+}
