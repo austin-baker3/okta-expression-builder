@@ -68,3 +68,10 @@ export interface ParseError {
   length: number;
   hint?: string;
 }
+
+export interface AppProfileEntry {
+  value: string | number | boolean | null | string[];
+  source: "preset" | "custom";
+}
+
+export type AppProfileData = Record<string, AppProfileEntry>;
