@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { AppProfileEntry, AppProfileData } from "../../types/expression";
-import { hrisPresets, type HrisPreset } from "../hrisPresets";
+import { hrisPresets } from "../hrisPresets";
 
 describe("AppProfileData types", () => {
   it("supports preset-sourced entries", () => {
