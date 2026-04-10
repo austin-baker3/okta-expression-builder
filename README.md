@@ -5,11 +5,12 @@ A free, open-source visual builder for Okta Expression Language (EL). Build prof
 ## Features
 
 - **Easy Mode** — Visual tree builder where you pick functions from a catalog and fill argument slots
-- **Advanced Mode** — Code editor with autocomplete for function names and user attributes
-- **Live Preview** — Expressions evaluate in real-time against an editable test profile
+- **Advanced Mode** — Code editor with autocomplete, inline error highlighting, and hover tooltips
+- **App Profile with HRIS Presets** — Test `app.*` attributes with preloaded data from Workday, BambooHR, SAP SuccessFactors, UKG Pro, and Aquera (ADP)
+- **Live Preview** — Expressions evaluate in real-time against editable user and app test profiles
 - **One-Click Copy** — Copy the generated expression string to your clipboard
-- **Complete EL Coverage** — String, Array, Conversion, Directory, Manager, and Time functions
-- **Test Profile** — Pre-filled with standard Okta attributes, editable values, and custom attribute support
+- **Complete EL Coverage** — String, Array, Conversion, Directory, Manager, and Time functions, plus arithmetic operators, single-quoted strings, and array literals
+- **Test Profiles** — Pre-filled with standard Okta user attributes, editable values, and custom attribute support
 
 ## Getting Started
 
@@ -43,9 +44,11 @@ Both modes operate on the same `ExpressionNode` tree model — switching between
 
 The expression engine has four modules:
 - **Serializer** — Converts the tree into an Okta EL string
-- **Parser** — Converts an EL string back into a tree
-- **Evaluator** — Evaluates the tree against test profile data for live preview
+- **Parser** — Converts an EL string back into a tree (with structured error positions for inline highlighting)
+- **Evaluator** — Evaluates the tree against user and app test profiles for live preview
 - **Validator** — Checks for missing arguments, unknown functions, and syntax errors
+
+The profile panel supports both user attributes (`user.*`) and app attributes (`app.*` / `appuser.*`). Load an HRIS preset to populate app attributes with realistic sample data from common integrations.
 
 ## License
 
