@@ -134,8 +134,16 @@ class Parser {
       return { type: "group", expression: expr };
     }
 
+    if (this.peek() === "{") {
+      return this.parseArrayLiteral();
+    }
+
     if (this.peek() === '"') {
       return this.parseString();
+    }
+
+    if (this.peek() === "'") {
+      return this.parseString("'");
     }
 
     if (this.peek() === "!") {
@@ -168,10 +176,10 @@ class Parser {
     return this.parseIdentifierOrFunctionCall();
   }
 
-  parseString(): ExpressionNode {
-    this.expect('"');
+  parseString(quote: string = '"'): ExpressionNode {
+    this.expect(quote);
     let value = "";
-    while (this.pos < this.input.length && this.input[this.pos] !== '"') {
+    while (this.pos < this.input.length && this.input[this.pos] !== quote) {
       if (this.input[this.pos] === "\\") {
         this.pos++;
         value += this.input[this.pos];
@@ -180,8 +188,26 @@ class Parser {
       }
       this.pos++;
     }
-    this.expect('"');
+    this.expect(quote);
     return { type: "literal", value };
+  }
+
+  parseArrayLiteral(): ExpressionNode {
+    this.expect("{");
+    this.skipWhitespace();
+    const elements: ExpressionNode[] = [];
+    if (this.peek() !== "}") {
+      elements.push(this.parseExpression());
+      this.skipWhitespace();
+      while (this.peek() === ",") {
+        this.pos++;
+        this.skipWhitespace();
+        elements.push(this.parseExpression());
+        this.skipWhitespace();
+      }
+    }
+    this.expect("}");
+    return { type: "array", elements };
   }
 
   parseNumber(): ExpressionNode {

@@ -193,4 +193,56 @@ describe("parser", () => {
       });
     });
   });
+
+  describe("single-quoted strings", () => {
+    it("parses single-quoted string", () => {
+      const result = parse("'hello'");
+      expect(result).toEqual({ type: "literal", value: "hello" });
+    });
+
+    it("parses single-quoted string with escape", () => {
+      const result = parse("'it\\'s'");
+      expect(result).toEqual({ type: "literal", value: "it's" });
+    });
+
+    it("parses single-quoted string in function call", () => {
+      const result = parse("String.toUpperCase('hello')");
+      expect(result).toEqual({
+        type: "function",
+        name: "String.toUpperCase",
+        arguments: [{ type: "literal", value: "hello" }],
+      });
+    });
+  });
+
+  describe("array literals", () => {
+    it("parses array literal with strings", () => {
+      const result = parse('{"a", "b", "c"}');
+      expect(result).toEqual({
+        type: "array",
+        elements: [
+          { type: "literal", value: "a" },
+          { type: "literal", value: "b" },
+          { type: "literal", value: "c" },
+        ],
+      });
+    });
+
+    it("parses empty array literal", () => {
+      const result = parse("{}");
+      expect(result).toEqual({ type: "array", elements: [] });
+    });
+
+    it("parses array literal with mixed types", () => {
+      const result = parse('{"hello", 42, true}');
+      expect(result).toEqual({
+        type: "array",
+        elements: [
+          { type: "literal", value: "hello" },
+          { type: "literal", value: 42 },
+          { type: "literal", value: true },
+        ],
+      });
+    });
+  });
 });
