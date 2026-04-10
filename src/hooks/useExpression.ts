@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo } from "react";
-import type { ExpressionNode, ProfileData, ValidationError } from "../types/expression";
+import type { ExpressionNode, ProfileData, ValidationError, ParseError } from "../types/expression";
 import { serialize } from "../engine/serializer";
 import { evaluate, type EvalResult } from "../engine/evaluator";
 import { validate } from "../engine/validator";
@@ -15,6 +15,8 @@ export interface ExpressionState {
   expressionString: string;
   evalResult: EvalResult | null;
   validationErrors: ValidationError[];
+  parseError: ParseError | null;
+  setParseError: (error: ParseError | null) => void;
   mode: "easy" | "advanced";
   setMode: (mode: "easy" | "advanced") => void;
   profileOpen: boolean;
@@ -28,6 +30,7 @@ export function useExpressionState(): ExpressionState {
   const [profile, setProfile] = useState<ProfileData>({ ...defaultProfileData });
   const [mode, setMode] = useState<"easy" | "advanced">("easy");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [parseError, setParseError] = useState<ParseError | null>(null);
 
   const updateProfileField = useCallback((key: string, value: string | null) => {
     setProfile((prev) => ({ ...prev, [key]: value === "" ? null : value }));
@@ -62,6 +65,8 @@ export function useExpressionState(): ExpressionState {
     expressionString,
     evalResult,
     validationErrors,
+    parseError,
+    setParseError,
     mode,
     setMode,
     profileOpen,
