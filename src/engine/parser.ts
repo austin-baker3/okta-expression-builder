@@ -74,13 +74,13 @@ class Parser {
   }
 
   parseComparison(): ExpressionNode {
-    let left = this.parseAddition();
+    let left = this.parseAddSub();
     this.skipWhitespace();
     const ops = ["==", "!=", ">=", "<=", ">", "<"];
     for (const op of ops) {
       if (this.match(op)) {
         this.skipWhitespace();
-        const right = this.parseAddition();
+        const right = this.parseAddSub();
         left = { type: "operator", operator: op, operands: [left, right] };
         this.skipWhitespace();
         break;
@@ -89,18 +89,37 @@ class Parser {
     return left;
   }
 
-  parseAddition(): ExpressionNode {
-    let left = this.parsePrimary();
+  parseAddSub(): ExpressionNode {
+    let left = this.parseMulDiv();
     this.skipWhitespace();
-    const operands: ExpressionNode[] = [left];
-    while (this.peek() === "+" && this.input[this.pos + 1] !== "+") {
+    while (this.peek() === "+" || this.peek() === "-") {
+      const op = this.input[this.pos];
+      if (op === "-") {
+        const before = this.input.substring(0, this.pos).trimEnd();
+        const lastChar = before[before.length - 1];
+        if (!/[a-zA-Z0-9_)"']/.test(lastChar)) break;
+      }
       this.pos++;
       this.skipWhitespace();
-      operands.push(this.parsePrimary());
+      const right = this.parseMulDiv();
+      left = { type: "operator", operator: op, operands: [left, right] };
       this.skipWhitespace();
     }
-    if (operands.length === 1) return left;
-    return { type: "operator", operator: "+", operands };
+    return left;
+  }
+
+  parseMulDiv(): ExpressionNode {
+    let left = this.parsePrimary();
+    this.skipWhitespace();
+    while (this.peek() === "*" || this.peek() === "/") {
+      const op = this.input[this.pos];
+      this.pos++;
+      this.skipWhitespace();
+      const right = this.parsePrimary();
+      left = { type: "operator", operator: op, operands: [left, right] };
+      this.skipWhitespace();
+    }
+    return left;
   }
 
   parsePrimary(): ExpressionNode {
