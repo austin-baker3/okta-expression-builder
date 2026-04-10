@@ -1,4 +1,4 @@
-import type { ExpressionNode, ProfileData } from "../types/expression";
+import type { ExpressionNode, ProfileData, AppProfileData } from "../types/expression";
 
 export type EvalResult =
   | { ok: true; value: string | number | boolean | null | string[] }
@@ -11,22 +11,27 @@ const UNSUPPORTED_FUNCTIONS = new Set([
   "getManagerUpn",
 ]);
 
-export function evaluate(node: ExpressionNode, profile: ProfileData): EvalResult {
+export function evaluate(node: ExpressionNode, profile: ProfileData, appProfile: AppProfileData = {}): EvalResult {
   switch (node.type) {
     case "literal":
       return { ok: true, value: node.value };
 
     case "attribute": {
+      if (node.path.startsWith("app.") || node.path.startsWith("appuser.")) {
+        const key = node.path.replace(/^(app|appuser)\./, "");
+        const entry = appProfile[key];
+        return { ok: true, value: entry ? entry.value : null };
+      }
       const key = node.path.replace(/^user\./, "");
       const value = key in profile ? profile[key] : null;
       return { ok: true, value };
     }
 
     case "group":
-      return evaluate(node.expression, profile);
+      return evaluate(node.expression, profile, appProfile);
 
     case "array": {
-      const results = node.elements.map((el) => evaluate(el, profile));
+      const results = node.elements.map((el) => evaluate(el, profile, appProfile));
       for (const r of results) {
         if (!r.ok) return r;
       }
@@ -35,23 +40,24 @@ export function evaluate(node: ExpressionNode, profile: ProfileData): EvalResult
     }
 
     case "function":
-      return evaluateFunction(node.name, node.arguments, profile);
+      return evaluateFunction(node.name, node.arguments, profile, appProfile);
 
     case "operator":
-      return evaluateOperator(node.operator, node.operands, profile);
+      return evaluateOperator(node.operator, node.operands, profile, appProfile);
   }
 }
 
 function evaluateFunction(
   name: string,
   args: ExpressionNode[],
-  profile: ProfileData
+  profile: ProfileData,
+  appProfile: AppProfileData
 ): EvalResult {
   if (UNSUPPORTED_FUNCTIONS.has(name)) {
     return { ok: false, error: `${name}() cannot be evaluated locally — requires live Okta context` };
   }
 
-  const evalArgs = args.map((a) => evaluate(a, profile));
+  const evalArgs = args.map((a) => evaluate(a, profile, appProfile));
   for (const r of evalArgs) {
     if (!r.ok) return r;
   }
@@ -165,15 +171,16 @@ function evaluateFunction(
 function evaluateOperator(
   operator: string,
   operands: ExpressionNode[],
-  profile: ProfileData
+  profile: ProfileData,
+  appProfile: AppProfileData
 ): EvalResult {
   if (operator === "?:") {
-    const condResult = evaluate(operands[0], profile);
+    const condResult = evaluate(operands[0], profile, appProfile);
     if (!condResult.ok) return condResult;
-    return condResult.value ? evaluate(operands[1], profile) : evaluate(operands[2], profile);
+    return condResult.value ? evaluate(operands[1], profile, appProfile) : evaluate(operands[2], profile, appProfile);
   }
 
-  const evalOps = operands.map((o) => evaluate(o, profile));
+  const evalOps = operands.map((o) => evaluate(o, profile, appProfile));
   for (const r of evalOps) {
     if (!r.ok) return r;
   }
